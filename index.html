@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>屏保效果</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      font-family: 微软雅黑;
+    }
+		#cv{
+			
+			height: 600px;
+			background: #000;
+		}
+  </style>
+  <script>
+    window.onload = function () {
+    	//做个屏保，随机出point个点，point个点连成线，
+    	//可以运动，运动方向随机，运动速度随机，运动到边界会改变放向（*-1）
+    	//运动后会产生残影，即拖着len根小尾巴
+    	var cv = document.getElementById("cv");//获取画布
+    	var ctx = cv.getContext("2d");//获取画笔（上下文对象）
+    	
+    	
+    	var point = [];//存放这些点
+    	var oldArr = [];//存小尾巴，小尾巴的总数量为 下方设置的len条
+  		//设定参数值
+  		var num = 3,//点的数量
+  				len = 100;//小尾巴的数量
+  			
+  		/**
+  		 * 以下为封装区
+  		 */
+  		//1.随机函数
+  		function rnd(n,m){
+  			return Math.round(Math.random()*(m-n)+n);
+  		}
+  		//2.画图draw
+  		function draw(x,y){
+  			ctx.fillStyle="#FFF";
+  			ctx.beginPath();
+  			ctx.fillRect(x,y,5,5);
+  			ctx.closePath();
+  		}
+  		//3.连线lineTo
+  		function drawline(x,y){
+//			ctx.strokeStyle="#FFF";
+  			ctx.lineTo(x,y);
+  		}
+  		//向point点的数组里push点
+		for(var i=0;i<num;i++){
+			point.push({
+				"x":rnd(0,cv.width),
+				"y":rnd(0,cv.height),
+				"iSpeedX":rnd(-30,30),
+				"iSpeedY":rnd(-30,30)
+			})
+		}
+		//for循环，画点
+		for(var j=0;j<point.length;j++){
+			draw(point[j].x,point[j].y)
+		}
+		
+		//让这几个点动起来
+		var iTimmer = setInterval(function(){
+			ctx.clearRect(0,0,cv.width,cv.height);
+		for(var j=0;j<point.length;j++){
+			point[j].x+=point[j].iSpeedX;
+			point[j].y+=point[j].iSpeedY;
+			//以下四个if为边界处理，碰撞返回，iSpeed*=-1
+			if(point[j].x>cv.width){point[j].x = cv.width;point[j].iSpeedX*= -1;}
+			if(point[j].x<0){point[j].x = 0;point[j].iSpeedX*= -1;}
+			if(point[j].y>cv.height){point[j].y = cv.height;point[j].iSpeedY*= -1;}
+			if(point[j].y<0){point[j].y = 0;point[j].iSpeedY*= -1;}
+			
+			draw(point[j].x,point[j].y)
+			
+			
+		}
+		//收集尾巴
+			var arr = [];//只要point里的x y speed 不要
+			for(var d = 0;d<point.length;d++){
+				arr[d]={
+					"x":point[d].x,"y":point[d].y
+				}
+			}
+				oldArr.push(arr);
+			if(oldArr.length>len){oldArr.shift()};
+	
+	
+		//画线
+		ctx.beginPath();
+   	ctx.strokeStyle = "FFF";
+    ctx.moveTo(point[0].x,point[0].y);
+   	for(var j = 1;j<point.length;j++){
+   		drawline(point[j].x,point[j].y);
+   	}
+   	ctx.lineTo(point[0].x,point[0].y);
+   	ctx.closePath();
+   	ctx.stroke();
+   	
+   	//画线------尾巴，残影
+		
+   	for(var a = 0;a < oldArr.length;a++){
+// 		if(a%5 == 0){//这个if加上会有神奇效果
+   			ctx.beginPath();
+	   		var opacity= (a+1)/oldArr.length;
+	   		ctx.lineWidth = 1;
+	      ctx.strokeStyle='rgba('+rnd(50,200)+','+rnd(50,200)+','+rnd(50,200)+','+opacity+')';
+	    	ctx.moveTo(oldArr[a][0].x,oldArr[a][0].y);
+	    	for(var k = 1;k < point.length;k++){
+	    		drawline(oldArr[a][k].x,oldArr[a][k].y);
+	    	}
+	    	ctx.lineTo(oldArr[a][0].x,oldArr[a][0].y);
+	   		ctx.closePath();
+	   		ctx.stroke();
+// 		}else{continue;}//这个if加上会有神奇效果
+   	}
+   	
+		},32)
+    
+    
+    	
+    };
+  </script>
+</head>
+<body>
+<canvas id="cv" width='1000px' height='600px'></canvas>
+</body>
+</html>
